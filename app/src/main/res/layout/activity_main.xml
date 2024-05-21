@@ -10,22 +10,33 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:background="@color/white"
-        android:orientation="horizontal"/>
+        android:layout_height="wrap_content">
 
-    <GridLayout
-        android:id="@+id/CellsLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="7"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Coord"
+            android:id="@+id/coord_text_view"/>
+
+
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:background="@color/white"
-        android:orientation="horizontal"/>
+        android:gravity="center">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <GridLayout
+                android:id="@+id/CellsLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
 
 </LinearLayout>

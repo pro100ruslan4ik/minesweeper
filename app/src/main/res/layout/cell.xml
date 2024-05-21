@@ -6,5 +6,6 @@
 
     android:textColor="@color/black"
     android:textSize="30sp"
-    android:layout_margin="1dp"
     android:textStyle="bold" />
+
+<!--    android:layout_margin="1dp"-->
