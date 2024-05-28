@@ -1,12 +1,11 @@
 package com.rus.minesweeper;
 
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Random;
 import android.content.Context;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.LayerDrawable;
-import android.icu.text.ListFormatter;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,7 +29,6 @@ public class MainActivity extends AppCompatActivity
         Empty
     }
 
-    private CellContent[][] mineField;
     private boolean isFirstClick = true;
     private final Context context = this;
     private TextView coord_text_view;
@@ -38,6 +36,9 @@ public class MainActivity extends AppCompatActivity
     private int HEIGHT = 20;
     private int MINE_COUNT = 20;
     private Button[][] cells;
+    private CellContent[][] mineFieldCells;
+    private boolean[][] openedCells;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +62,7 @@ public class MainActivity extends AppCompatActivity
         {
             for (int j = 0; j < WIDTH; j++)
             {
-                mineField[i][j] = CellContent.Empty;
+                mineFieldCells[i][j] = CellContent.Empty;
             }
         }
 
@@ -76,16 +77,22 @@ public class MainActivity extends AppCompatActivity
                 x = random.nextInt(WIDTH);
                 y = random.nextInt(HEIGHT);
             }
-            while(mineField[y][x] != CellContent.Empty);
-            mineField[y][x] = CellContent.Mine;
+            while(mineFieldCells[y][x] != CellContent.Empty);
+            mineFieldCells[y][x] = CellContent.Mine;
         }
     }
     void generate()
     {
+        openedCells = new boolean[HEIGHT][WIDTH];
+
+        InputStream inputStream = getResources().openRawResource(R.raw.untouched);
+        Drawable untouchedDrawable = Drawable.createFromStream(inputStream, null);
+
         for (int i = 0; i < HEIGHT; i++)
             for (int j = 0; j < WIDTH; j++)
             {
-                cells[i][j].setBackgroundResource(R.drawable.untouched);
+                cells[i][j].setBackground(untouchedDrawable);
+                openedCells[i][j] = false;
             }
     }
     int getY(View v)
@@ -101,15 +108,10 @@ public class MainActivity extends AppCompatActivity
     void makeCells()
     {
         cells = new Button[HEIGHT][WIDTH];
-        mineField = new CellContent[HEIGHT][WIDTH];
+        mineFieldCells = new CellContent[HEIGHT][WIDTH];
         makeMines();
 
-        ColorDrawable colorDrawable = new ColorDrawable(ContextCompat.getColor(this,R.color.gray));
-        Drawable mineDrawable = ContextCompat.getDrawable(this,R.drawable.mine);
-        BitmapDrawable bitmapMineDrawable = (BitmapDrawable) mineDrawable;
-
-        Drawable[] layers = {colorDrawable, bitmapMineDrawable};
-        LayerDrawable layerDrawable = new LayerDrawable(layers);
+        ColorDrawable emptyDrawable = new ColorDrawable(ContextCompat.getColor(this,R.color.gray));
 
         GridLayout cellsLayout = (GridLayout) findViewById(R.id.CellsLayout);
         cellsLayout.removeAllViews();
@@ -130,13 +132,16 @@ public class MainActivity extends AppCompatActivity
                         int tappedX = getX(tappedCell);
                         int tappedY = getY(tappedCell);
 
+                        try
+                        {
+                            openCell(tappedX, tappedY);
+                        }
+                        catch (Exception e)
+                        {
+                            coord_text_view.setText(e.getMessage());
+                        }
 
-                        if (mineField[tappedY][tappedX] == CellContent.Mine)
-                            tappedCell.setBackground(layerDrawable);
-                        else
-                            tappedCell.setBackground(colorDrawable);
-
-                        coord_text_view.setText("" + tappedX + " " + tappedY);
+                        coord_text_view.setText(tappedX + " " + tappedY);
                     }
                 });
                 cells[i][j].setOnLongClickListener(new View.OnLongClickListener()
@@ -149,7 +154,7 @@ public class MainActivity extends AppCompatActivity
                         int tappedX = getX(tappedCell);
                         int tappedY = getY(tappedCell);
 
-                        coord_text_view.setText(String.valueOf(mineField[tappedY][tappedX]));
+                        coord_text_view.setText(String.valueOf(mineFieldCells[tappedY][tappedX]));
                         return true;
                     }
                 });
@@ -157,4 +162,115 @@ public class MainActivity extends AppCompatActivity
                 cellsLayout.addView(cells[i][j]);
             }
     }
+    void openCell(int x, int y) throws Exception
+    {
+        if (x < 0 || y < 0 || x >= WIDTH || y >= HEIGHT)
+            throw new Exception("Выход за границы поля");
+
+        if (mineFieldCells[y][x] == CellContent.Mine)
+        {
+            cells[y][x].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.mine));
+            return;
+        }
+
+        if (openedCells[y][x])
+            return;
+
+        openedCells[y][x] = true;
+        ArrayList<Button> neighboors = makeNeighboorsList(x,y);
+
+        switch (countMines(neighboors))
+        {
+            case 0:
+                cells[y][x].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.empty));
+                for (Button b : neighboors)
+                {
+                    openCell(getX(b),getY(b));
+                }
+                break;
+
+            case 1:
+                cells[y][x].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.one));
+                break;
+
+            case 2:
+                cells[y][x].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.two));
+                break;
+
+            case 3:
+                cells[y][x].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.three));
+                break;
+
+            case 4:
+                cells[y][x].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.four));
+                break;
+
+            case 5:
+                cells[y][x].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.five));
+                break;
+
+            case 6:
+                cells[y][x].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.six));
+                break;
+
+            case 7:
+                cells[y][x].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.seven));
+                break;
+
+            case 8:
+                cells[y][x].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.eight));
+                break;
+
+            default:
+                throw new Exception("Некорректное количество соседних мин");
+
+        }
+
+
+
+    }
+
+    int countMines(ArrayList<Button> neighboors)
+    {
+        int mineCounter = 0;
+
+        for (Button b : neighboors)
+        {
+            if (mineFieldCells[getY(b)][getX(b)] == CellContent.Mine)
+                mineCounter++;
+        }
+
+        return mineCounter;
+    }
+    ArrayList<Button> makeNeighboorsList(int x, int y)
+    {
+        ArrayList<Button> neighboors = new ArrayList<>();
+
+        if (x > 0)
+        {
+            neighboors.add(cells[y][x-1]);
+            if (y > 0)
+                neighboors.add(cells[y-1][x-1]);
+            if (y < HEIGHT - 1)
+                neighboors.add(cells[y+1][x-1]);
+        }
+        if (y > 0)
+        {
+            neighboors.add(cells[y-1][x]);
+            if (x < WIDTH - 1)
+                neighboors.add(cells[y-1][x+1]);
+        }
+        if (x < WIDTH - 1)
+        {
+            neighboors.add(cells[y][x+1]);
+            if (y < HEIGHT - 1)
+                neighboors.add(cells[y+1][x+1]);
+        }
+        if (y < HEIGHT - 1)
+        {
+            neighboors.add(cells[y+1][x]);
+        }
+        return neighboors;
+    }
+
 }
