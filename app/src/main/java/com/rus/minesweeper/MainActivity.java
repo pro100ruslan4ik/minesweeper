@@ -4,7 +4,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Random;
 import android.content.Context;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -32,9 +31,9 @@ public class MainActivity extends AppCompatActivity
     private boolean isFirstClick = true;
     private final Context context = this;
     private TextView coord_text_view;
-    private int WIDTH = 10;
-    private int HEIGHT = 20;
-    private int MINE_COUNT = 20;
+    private final int WIDTH = 10;
+    private final int HEIGHT = 20;
+    private final int MINE_COUNT = 20;
     private Button[][] cells;
     private CellContent[][] mineFieldCells;
     private boolean[][] openedCells;
@@ -56,7 +55,7 @@ public class MainActivity extends AppCompatActivity
         generate();
     }
 
-    void makeMines()
+    void makeMines(int xFirst, int yFirst)
     {
         for (int i = 0; i < HEIGHT; i++)
         {
@@ -77,7 +76,7 @@ public class MainActivity extends AppCompatActivity
                 x = random.nextInt(WIDTH);
                 y = random.nextInt(HEIGHT);
             }
-            while(mineFieldCells[y][x] != CellContent.Empty);
+            while(mineFieldCells[y][x] != CellContent.Empty || (x == xFirst && y == yFirst));
             mineFieldCells[y][x] = CellContent.Mine;
         }
     }
@@ -109,21 +108,19 @@ public class MainActivity extends AppCompatActivity
     {
         cells = new Button[HEIGHT][WIDTH];
         mineFieldCells = new CellContent[HEIGHT][WIDTH];
-        makeMines();
-
-        ColorDrawable emptyDrawable = new ColorDrawable(ContextCompat.getColor(this,R.color.gray));
 
         GridLayout cellsLayout = (GridLayout) findViewById(R.id.CellsLayout);
         cellsLayout.removeAllViews();
         cellsLayout.setColumnCount(WIDTH);
 
         for (int i = 0; i < HEIGHT; i++)
-            for (int j = 0; j < WIDTH; j++) {
+            for (int j = 0; j < WIDTH; j++)
+            {
                 LayoutInflater inflater = (LayoutInflater) getApplicationContext()
                         .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 cells[i][j] = (Button) inflater.inflate(R.layout.cell, cellsLayout, false);
                 cells[i][j].setOnClickListener(new View.OnClickListener()
-                {
+            {
                     @Override
                     public void onClick(View v)
                     {
@@ -131,6 +128,12 @@ public class MainActivity extends AppCompatActivity
 
                         int tappedX = getX(tappedCell);
                         int tappedY = getY(tappedCell);
+
+                        if (isFirstClick)
+                        {
+                            makeMines(tappedX, tappedY);
+                            isFirstClick = false;
+                        }
 
                         try
                         {
@@ -183,10 +186,9 @@ public class MainActivity extends AppCompatActivity
         {
             case 0:
                 cells[y][x].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.empty));
+
                 for (Button b : neighboors)
-                {
                     openCell(getX(b),getY(b));
-                }
                 break;
 
             case 1:
@@ -225,9 +227,6 @@ public class MainActivity extends AppCompatActivity
                 throw new Exception("Некорректное количество соседних мин");
 
         }
-
-
-
     }
 
     int countMines(ArrayList<Button> neighboors)
