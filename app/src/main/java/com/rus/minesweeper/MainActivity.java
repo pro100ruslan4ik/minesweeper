@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Random;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -13,6 +14,7 @@ import android.widget.GridLayout;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
@@ -52,7 +54,7 @@ public class MainActivity extends AppCompatActivity
 
         coord_text_view = findViewById(R.id.coord_text_view);
         makeCells();
-        generate();
+        initializeBackgroundInCells();
     }
 
     void makeMines(int xFirst, int yFirst)
@@ -80,7 +82,7 @@ public class MainActivity extends AppCompatActivity
             mineFieldCells[y][x] = CellContent.Mine;
         }
     }
-    void generate()
+    void initializeBackgroundInCells()
     {
         openedCells = new boolean[HEIGHT][WIDTH];
 
@@ -165,6 +167,42 @@ public class MainActivity extends AppCompatActivity
                 cellsLayout.addView(cells[i][j]);
             }
     }
+    void defeat()
+    {
+        for(int i = 0; i < WIDTH; i++)
+            for (int j = 0; j < HEIGHT; j++)
+            {
+                if(mineFieldCells[j][i] == CellContent.Mine && !openedCells[j][i])
+                {
+                    cells[j][i].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.untouched_mine));
+                }
+            }
+        showDefeatDialog();
+    }
+
+    void showDefeatDialog()
+    {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Вы проиграли!");
+        builder.setMessage("Что вы хотите сделать?");
+
+        builder.setNegativeButton("Выход", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                finish();
+            }
+        });
+
+        builder.setPositiveButton("Начать заново", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                recreate();
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
     void openCell(int x, int y) throws Exception
     {
         if (x < 0 || y < 0 || x >= WIDTH || y >= HEIGHT)
@@ -173,6 +211,8 @@ public class MainActivity extends AppCompatActivity
         if (mineFieldCells[y][x] == CellContent.Mine)
         {
             cells[y][x].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.mine));
+            openedCells[y][x] = true;
+            defeat();
             return;
         }
 
