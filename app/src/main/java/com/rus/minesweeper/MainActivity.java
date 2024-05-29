@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity
     private Button[][] cells;
     private CellContent[][] mineFieldCells;
     private boolean[][] openedCells;
+    private boolean[][] flagedCells;
 
 
     @Override
@@ -85,6 +86,7 @@ public class MainActivity extends AppCompatActivity
     void initializeBackgroundInCells()
     {
         openedCells = new boolean[HEIGHT][WIDTH];
+        flagedCells = new boolean[HEIGHT][WIDTH];
 
         InputStream inputStream = getResources().openRawResource(R.raw.untouched);
         Drawable untouchedDrawable = Drawable.createFromStream(inputStream, null);
@@ -94,6 +96,7 @@ public class MainActivity extends AppCompatActivity
             {
                 cells[i][j].setBackground(untouchedDrawable);
                 openedCells[i][j] = false;
+                flagedCells[i][j] = false;
             }
     }
     int getY(View v)
@@ -139,7 +142,8 @@ public class MainActivity extends AppCompatActivity
 
                         try
                         {
-                            openCell(tappedX, tappedY);
+                            if (!flagedCells[tappedY][tappedX])
+                                openCell(tappedX, tappedY);
                         }
                         catch (Exception e)
                         {
@@ -158,6 +162,22 @@ public class MainActivity extends AppCompatActivity
 
                         int tappedX = getX(tappedCell);
                         int tappedY = getY(tappedCell);
+
+                        if (!openedCells[tappedY][tappedX])
+                        {
+                            flagedCells[tappedY][tappedX] = !flagedCells[tappedY][tappedX];
+
+                            if (flagedCells[tappedY][tappedX])
+                                tappedCell.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.flag));
+                            else
+                            {
+                                InputStream inputStream = getResources().openRawResource(R.raw.untouched);
+                                Drawable untouchedDrawable = Drawable.createFromStream(inputStream, null);
+
+                                tappedCell.setBackground(untouchedDrawable);
+                            }
+                        }
+
 
                         coord_text_view.setText(String.valueOf(mineFieldCells[tappedY][tappedX]));
                         return true;
@@ -210,13 +230,13 @@ public class MainActivity extends AppCompatActivity
 
         if (mineFieldCells[y][x] == CellContent.Mine)
         {
-            cells[y][x].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.mine));
+            cells[y][x].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.exploded_mine));
             openedCells[y][x] = true;
             defeat();
             return;
         }
 
-        if (openedCells[y][x])
+        if (openedCells[y][x] || flagedCells[y][x])
             return;
 
         openedCells[y][x] = true;
