@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Сапер</string>
+    <string name="You_lost">Вы проиграли!</string>
+    <string name="Play_again">Сыграть еще раз?</string>
+    <string name="Exit">Выйти</string>
+    <string name="Start_over">Новая игра</string>
+    <string name="You_win">Вы победили!</string>
+</resources>

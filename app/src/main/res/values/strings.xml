@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Minesweeper</string>
+    <string name="You_lost">You lost!</string>
+    <string name="Play_again">Play again?</string>
+    <string name="Exit">Exit</string>
+    <string name="Start_over">Start over</string>
+    <string name="You_win">You win!</string>
 </resources>
