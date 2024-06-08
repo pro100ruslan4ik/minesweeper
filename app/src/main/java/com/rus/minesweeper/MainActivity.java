@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private boolean isFirstClick = true;
+    private boolean isGameOver = false;
     private final Context context = this;
     private TextView coord_text_view;
     private final int WIDTH = 10;
@@ -144,7 +145,7 @@ public class MainActivity extends AppCompatActivity
                         try
                         {
                             if (!flaggedCells[tappedY][tappedX])
-                                openCell(tappedX, tappedY);
+                                openCell(tappedX, tappedY,true);
                         }
                         catch (Exception e)
                         {
@@ -190,15 +191,20 @@ public class MainActivity extends AppCompatActivity
     }
     void defeat()
     {
-        for(int i = 0; i < HEIGHT; i++)
-            for (int j = 0; j < WIDTH; j++)
-            {
-                if(mineFieldCells[i][j] == CellContent.Mine && !openedCells[i][j])
+        if (!isGameOver)
+        {
+            isGameOver = true;
+
+            for(int i = 0; i < HEIGHT; i++)
+                for (int j = 0; j < WIDTH; j++)
                 {
-                    cells[i][j].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.untouched_mine));
+                    if(mineFieldCells[i][j] == CellContent.Mine && !openedCells[i][j])
+                    {
+                        cells[i][j].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.untouched_mine));
+                    }
                 }
-            }
-        showDefeatDialog();
+            showDefeatDialog();
+        }
     }
 
     void showDefeatDialog()
@@ -226,15 +232,20 @@ public class MainActivity extends AppCompatActivity
     }
     void win()
     {
-        for(int i = 0; i < HEIGHT; i++)
-            for (int j = 0; j < WIDTH; j++)
-            {
-                if(mineFieldCells[i][j] == CellContent.Mine && !openedCells[i][j])
+        if (!isGameOver)
+        {
+            isGameOver = true;
+
+            for(int i = 0; i < HEIGHT; i++)
+                for (int j = 0; j < WIDTH; j++)
                 {
-                    cells[i][j].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.untouched_mine));
+                    if(mineFieldCells[i][j] == CellContent.Mine && !openedCells[i][j])
+                    {
+                        cells[i][j].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.untouched_mine));
+                    }
                 }
-            }
-        showWinDialog();
+            showWinDialog();
+        }
     }
 
     void showWinDialog()
@@ -260,7 +271,32 @@ public class MainActivity extends AppCompatActivity
         AlertDialog dialog = builder.create();
         dialog.show();
     }
-    void openCell(int x, int y) throws Exception
+
+    void openNeighboursWithoutFlag(int x, int y)
+    {
+        ArrayList<Button> neighbours = makeNeighboursList(x,y);
+        int countOfMines = countMines(neighbours);
+        int countOfFlags = countFlags(neighbours);
+
+        if (countOfMines == countOfFlags)
+        {
+            try
+            {
+                for (Button b : neighbours)
+                {
+                    if (!flaggedCells[getY(b)][getX(b)])
+                        openCell(getX(b),getY(b), false);
+                }
+            }
+            catch(Exception e)
+            {
+                coord_text_view.setText(e.getMessage());
+            }
+        }
+
+
+    }
+    void openCell(int x, int y, boolean isTapped) throws Exception
     {
         if (x < 0 || y < 0 || x >= WIDTH || y >= HEIGHT)
             throw new Exception("Error: Out of bounds");
@@ -273,21 +309,29 @@ public class MainActivity extends AppCompatActivity
             return;
         }
 
-        if (openedCells[y][x] || flaggedCells[y][x])
+        if (flaggedCells[y][x])
             return;
+
+        if(openedCells[y][x])
+        {
+            if (isTapped)
+                openNeighboursWithoutFlag(x,y);
+
+            return;
+        }
 
         openedCells[y][x] = true;
         countOfOpenedCells++;
 
-        ArrayList<Button> neighboors = makeNeighboorsList(x,y);
+        ArrayList<Button> neighbours = makeNeighboursList(x,y);
 
-        switch (countMines(neighboors))
+        switch (countMines(neighbours))
         {
             case 0:
                 cells[y][x].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.empty));
 
-                for (Button b : neighboors)
-                    openCell(getX(b),getY(b));
+                for (Button b : neighbours)
+                    openCell(getX(b),getY(b),false);
                 break;
 
             case 1:
@@ -323,18 +367,30 @@ public class MainActivity extends AppCompatActivity
                 break;
 
             default:
-                throw new Exception("Error: Incorrect count of mine neighboors");
+                throw new Exception("Error: Incorrect count of mine neighbours");
 
         }
         if (countOfOpenedCells == WIDTH * HEIGHT - MINE_COUNT)
             win();
     }
 
-    int countMines(ArrayList<Button> neighboors)
+    int countFlags(ArrayList<Button> neighbours)
+    {
+        int flagCounter = 0;
+
+        for (Button b : neighbours)
+        {
+            if (flaggedCells[getY(b)][getX(b)])
+               flagCounter++;
+        }
+
+        return flagCounter;
+    }
+    int countMines(ArrayList<Button> neighbours)
     {
         int mineCounter = 0;
 
-        for (Button b : neighboors)
+        for (Button b : neighbours)
         {
             if (mineFieldCells[getY(b)][getX(b)] == CellContent.Mine)
                 mineCounter++;
@@ -342,35 +398,35 @@ public class MainActivity extends AppCompatActivity
 
         return mineCounter;
     }
-    ArrayList<Button> makeNeighboorsList(int x, int y)
+    ArrayList<Button> makeNeighboursList(int x, int y)
     {
-        ArrayList<Button> neighboors = new ArrayList<>();
+        ArrayList<Button> neighbours = new ArrayList<>();
 
         if (x > 0)
         {
-            neighboors.add(cells[y][x-1]);
+            neighbours.add(cells[y][x-1]);
             if (y > 0)
-                neighboors.add(cells[y-1][x-1]);
+                neighbours.add(cells[y-1][x-1]);
             if (y < HEIGHT - 1)
-                neighboors.add(cells[y+1][x-1]);
+                neighbours.add(cells[y+1][x-1]);
         }
         if (y > 0)
         {
-            neighboors.add(cells[y-1][x]);
+            neighbours.add(cells[y-1][x]);
             if (x < WIDTH - 1)
-                neighboors.add(cells[y-1][x+1]);
+                neighbours.add(cells[y-1][x+1]);
         }
         if (x < WIDTH - 1)
         {
-            neighboors.add(cells[y][x+1]);
+            neighbours.add(cells[y][x+1]);
             if (y < HEIGHT - 1)
-                neighboors.add(cells[y+1][x+1]);
+                neighbours.add(cells[y+1][x+1]);
         }
         if (y < HEIGHT - 1)
         {
-            neighboors.add(cells[y+1][x]);
+            neighbours.add(cells[y+1][x]);
         }
-        return neighboors;
+        return neighbours;
     }
 
 }
