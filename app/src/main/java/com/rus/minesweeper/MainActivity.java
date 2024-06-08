@@ -31,14 +31,17 @@ public class MainActivity extends AppCompatActivity
     }
 
     private boolean isFirstClick = true;
+    private boolean isGameOver = false;
     private final Context context = this;
     private TextView coord_text_view;
     private final int WIDTH = 10;
     private final int HEIGHT = 20;
     private final int MINE_COUNT = 20;
+    private int countOfOpenedCells = 0;
     private Button[][] cells;
     private CellContent[][] mineFieldCells;
     private boolean[][] openedCells;
+    private boolean[][] flaggedCells;
 
 
     @Override
@@ -85,6 +88,7 @@ public class MainActivity extends AppCompatActivity
     void initializeBackgroundInCells()
     {
         openedCells = new boolean[HEIGHT][WIDTH];
+        flaggedCells = new boolean[HEIGHT][WIDTH];
 
         InputStream inputStream = getResources().openRawResource(R.raw.untouched);
         Drawable untouchedDrawable = Drawable.createFromStream(inputStream, null);
@@ -94,6 +98,7 @@ public class MainActivity extends AppCompatActivity
             {
                 cells[i][j].setBackground(untouchedDrawable);
                 openedCells[i][j] = false;
+                flaggedCells[i][j] = false;
             }
     }
     int getY(View v)
@@ -139,7 +144,8 @@ public class MainActivity extends AppCompatActivity
 
                         try
                         {
-                            openCell(tappedX, tappedY);
+                            if (!flaggedCells[tappedY][tappedX])
+                                openCell(tappedX, tappedY,true);
                         }
                         catch (Exception e)
                         {
@@ -159,6 +165,22 @@ public class MainActivity extends AppCompatActivity
                         int tappedX = getX(tappedCell);
                         int tappedY = getY(tappedCell);
 
+                        if (!openedCells[tappedY][tappedX])
+                        {
+                            flaggedCells[tappedY][tappedX] = !flaggedCells[tappedY][tappedX];
+
+                            if (flaggedCells[tappedY][tappedX])
+                                tappedCell.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.flag));
+                            else
+                            {
+                                InputStream inputStream = getResources().openRawResource(R.raw.untouched);
+                                Drawable untouchedDrawable = Drawable.createFromStream(inputStream, null);
+
+                                tappedCell.setBackground(untouchedDrawable);
+                            }
+                        }
+
+
                         coord_text_view.setText(String.valueOf(mineFieldCells[tappedY][tappedX]));
                         return true;
                     }
@@ -169,31 +191,36 @@ public class MainActivity extends AppCompatActivity
     }
     void defeat()
     {
-        for(int i = 0; i < WIDTH; i++)
-            for (int j = 0; j < HEIGHT; j++)
-            {
-                if(mineFieldCells[j][i] == CellContent.Mine && !openedCells[j][i])
+        if (!isGameOver)
+        {
+            isGameOver = true;
+
+            for(int i = 0; i < HEIGHT; i++)
+                for (int j = 0; j < WIDTH; j++)
                 {
-                    cells[j][i].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.untouched_mine));
+                    if(mineFieldCells[i][j] == CellContent.Mine && !openedCells[i][j])
+                    {
+                        cells[i][j].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.untouched_mine));
+                    }
                 }
-            }
-        showDefeatDialog();
+            showDefeatDialog();
+        }
     }
 
     void showDefeatDialog()
     {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Вы проиграли!");
-        builder.setMessage("Что вы хотите сделать?");
+        builder.setTitle(R.string.You_lost);
+        builder.setMessage(R.string.Play_again);
 
-        builder.setNegativeButton("Выйти", new DialogInterface.OnClickListener() {
+        builder.setNegativeButton(R.string.Exit, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 finish();
             }
         });
 
-        builder.setPositiveButton("Начать заново", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton(R.string.Start_over, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 recreate();
@@ -203,32 +230,108 @@ public class MainActivity extends AppCompatActivity
         AlertDialog dialog = builder.create();
         dialog.show();
     }
-    void openCell(int x, int y) throws Exception
+    void win()
+    {
+        if (!isGameOver)
+        {
+            isGameOver = true;
+
+            for(int i = 0; i < HEIGHT; i++)
+                for (int j = 0; j < WIDTH; j++)
+                {
+                    if(mineFieldCells[i][j] == CellContent.Mine && !openedCells[i][j])
+                    {
+                        cells[i][j].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.untouched_mine));
+                    }
+                }
+            showWinDialog();
+        }
+    }
+
+    void showWinDialog()
+    {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.You_win);
+        builder.setMessage(R.string.Play_again);
+
+        builder.setNegativeButton(R.string.Exit, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                finish();
+            }
+        });
+
+        builder.setPositiveButton(R.string.Start_over, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                recreate();
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    void openNeighboursWithoutFlag(int x, int y)
+    {
+        ArrayList<Button> neighbours = makeNeighboursList(x,y);
+        int countOfMines = countMines(neighbours);
+        int countOfFlags = countFlags(neighbours);
+
+        if (countOfMines == countOfFlags)
+        {
+            try
+            {
+                for (Button b : neighbours)
+                {
+                    if (!flaggedCells[getY(b)][getX(b)])
+                        openCell(getX(b),getY(b), false);
+                }
+            }
+            catch(Exception e)
+            {
+                coord_text_view.setText(e.getMessage());
+            }
+        }
+
+
+    }
+    void openCell(int x, int y, boolean isTapped) throws Exception
     {
         if (x < 0 || y < 0 || x >= WIDTH || y >= HEIGHT)
-            throw new Exception("Выход за границы поля");
+            throw new Exception("Error: Out of bounds");
 
         if (mineFieldCells[y][x] == CellContent.Mine)
         {
-            cells[y][x].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.mine));
+            cells[y][x].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.exploded_mine));
             openedCells[y][x] = true;
             defeat();
             return;
         }
 
-        if (openedCells[y][x])
+        if (flaggedCells[y][x])
             return;
 
-        openedCells[y][x] = true;
-        ArrayList<Button> neighboors = makeNeighboorsList(x,y);
+        if(openedCells[y][x])
+        {
+            if (isTapped)
+                openNeighboursWithoutFlag(x,y);
 
-        switch (countMines(neighboors))
+            return;
+        }
+
+        openedCells[y][x] = true;
+        countOfOpenedCells++;
+
+        ArrayList<Button> neighbours = makeNeighboursList(x,y);
+
+        switch (countMines(neighbours))
         {
             case 0:
                 cells[y][x].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.empty));
 
-                for (Button b : neighboors)
-                    openCell(getX(b),getY(b));
+                for (Button b : neighbours)
+                    openCell(getX(b),getY(b),false);
                 break;
 
             case 1:
@@ -264,16 +367,30 @@ public class MainActivity extends AppCompatActivity
                 break;
 
             default:
-                throw new Exception("Некорректное количество соседних мин");
+                throw new Exception("Error: Incorrect count of mine neighbours");
 
         }
+        if (countOfOpenedCells == WIDTH * HEIGHT - MINE_COUNT)
+            win();
     }
 
-    int countMines(ArrayList<Button> neighboors)
+    int countFlags(ArrayList<Button> neighbours)
+    {
+        int flagCounter = 0;
+
+        for (Button b : neighbours)
+        {
+            if (flaggedCells[getY(b)][getX(b)])
+               flagCounter++;
+        }
+
+        return flagCounter;
+    }
+    int countMines(ArrayList<Button> neighbours)
     {
         int mineCounter = 0;
 
-        for (Button b : neighboors)
+        for (Button b : neighbours)
         {
             if (mineFieldCells[getY(b)][getX(b)] == CellContent.Mine)
                 mineCounter++;
@@ -281,35 +398,35 @@ public class MainActivity extends AppCompatActivity
 
         return mineCounter;
     }
-    ArrayList<Button> makeNeighboorsList(int x, int y)
+    ArrayList<Button> makeNeighboursList(int x, int y)
     {
-        ArrayList<Button> neighboors = new ArrayList<>();
+        ArrayList<Button> neighbours = new ArrayList<>();
 
         if (x > 0)
         {
-            neighboors.add(cells[y][x-1]);
+            neighbours.add(cells[y][x-1]);
             if (y > 0)
-                neighboors.add(cells[y-1][x-1]);
+                neighbours.add(cells[y-1][x-1]);
             if (y < HEIGHT - 1)
-                neighboors.add(cells[y+1][x-1]);
+                neighbours.add(cells[y+1][x-1]);
         }
         if (y > 0)
         {
-            neighboors.add(cells[y-1][x]);
+            neighbours.add(cells[y-1][x]);
             if (x < WIDTH - 1)
-                neighboors.add(cells[y-1][x+1]);
+                neighbours.add(cells[y-1][x+1]);
         }
         if (x < WIDTH - 1)
         {
-            neighboors.add(cells[y][x+1]);
+            neighbours.add(cells[y][x+1]);
             if (y < HEIGHT - 1)
-                neighboors.add(cells[y+1][x+1]);
+                neighbours.add(cells[y+1][x+1]);
         }
         if (y < HEIGHT - 1)
         {
-            neighboors.add(cells[y+1][x]);
+            neighbours.add(cells[y+1][x]);
         }
-        return neighboors;
+        return neighbours;
     }
 
 }
