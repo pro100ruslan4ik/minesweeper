@@ -160,6 +160,9 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public boolean onLongClick(View v)
                     {
+                        if (isGameOver)
+                            return true;
+
                         Button tappedCell = (Button) v;
 
                         int tappedX = getX(tappedCell);
@@ -300,6 +303,9 @@ public class MainActivity extends AppCompatActivity
     {
         if (x < 0 || y < 0 || x >= WIDTH || y >= HEIGHT)
             throw new Exception("Error: Out of bounds");
+
+        if (isGameOver)
+            return;
 
         if (mineFieldCells[y][x] == CellContent.Mine)
         {
