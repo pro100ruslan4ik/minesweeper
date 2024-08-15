@@ -9,14 +9,23 @@
     android:orientation="vertical">
 
     <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Coord"
             android:id="@+id/coord_text_view"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Bombs left"
+            android:id="@+id/bombs_left_text_view"/>
 
 
     </LinearLayout>

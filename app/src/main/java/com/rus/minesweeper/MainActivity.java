@@ -32,14 +32,20 @@ public class MainActivity extends AppCompatActivity
 
     private boolean isFirstClick = true;
     private boolean isGameOver = false;
-    private final Context context = this;
+
     private TextView coord_text_view;
+    private TextView bombs_left_text_view;
+
     private final int WIDTH = 10;
     private final int HEIGHT = 20;
-    private final int MINE_COUNT = 20;
+    private final int BOMB_COUNT = 20;
+
     private int countOfOpenedCells = 0;
+    private int flagCount = 0;
+
     private Button[][] cells;
     private CellContent[][] mineFieldCells;
+
     private boolean[][] openedCells;
     private boolean[][] flaggedCells;
 
@@ -55,7 +61,15 @@ public class MainActivity extends AppCompatActivity
             return insets;
         });
 
+        init();
+    }
+    void init()
+    {
         coord_text_view = findViewById(R.id.coord_text_view);
+
+        bombs_left_text_view = findViewById(R.id.bombs_left_text_view);
+        bombs_left_text_view.setText("Bombs left: " + BOMB_COUNT);
+
         makeCells();
         initializeBackgroundInCells();
     }
@@ -74,7 +88,7 @@ public class MainActivity extends AppCompatActivity
         int x;
         int y;
 
-        for (int currentMineCount = 0; currentMineCount < MINE_COUNT; currentMineCount++)
+        for (int currentMineCount = 0; currentMineCount < BOMB_COUNT; currentMineCount++)
         {
             do
             {
@@ -111,6 +125,69 @@ public class MainActivity extends AppCompatActivity
         return Integer.parseInt(((String) v.getTag()).split(",")[1]);
     }
 
+    void onCellClick(View v)
+    {
+        Button tappedCell = (Button) v;
+
+        int tappedX = getX(tappedCell);
+        int tappedY = getY(tappedCell);
+
+        if (isFirstClick)
+        {
+            makeMines(tappedX, tappedY);
+            isFirstClick = false;
+        }
+
+        try
+        {
+            if (!flaggedCells[tappedY][tappedX])
+                openCell(tappedX, tappedY,true);
+        }
+        catch (Exception e)
+        {
+            coord_text_view.setText(e.getMessage());
+        }
+
+        coord_text_view.setText(tappedX + " " + tappedY);
+    }
+
+    boolean onCellLongClick(View v)
+    {
+        if (isGameOver)
+            return true;
+
+        Button tappedCell = (Button) v;
+
+        int tappedX = getX(tappedCell);
+        int tappedY = getY(tappedCell);
+
+        if (!openedCells[tappedY][tappedX])
+        {
+            flaggedCells[tappedY][tappedX] = !flaggedCells[tappedY][tappedX];
+
+            if (flaggedCells[tappedY][tappedX])
+            {
+                tappedCell.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.flag));
+                flagCount++;
+            }
+            else
+            {
+                InputStream inputStream = getResources().openRawResource(R.raw.untouched);
+                Drawable untouchedDrawable = Drawable.createFromStream(inputStream, null);
+
+                tappedCell.setBackground(untouchedDrawable);
+                flagCount--;
+            }
+
+            int bombsLeft = Math.max((BOMB_COUNT - flagCount), 0);
+            bombs_left_text_view.setText("Bombs left: " + bombsLeft);
+        }
+
+
+        coord_text_view.setText(String.valueOf(mineFieldCells[tappedY][tappedX]));
+        return true;
+    }
+
     void makeCells()
     {
         cells = new Button[HEIGHT][WIDTH];
@@ -126,68 +203,25 @@ public class MainActivity extends AppCompatActivity
                 LayoutInflater inflater = (LayoutInflater) getApplicationContext()
                         .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 cells[i][j] = (Button) inflater.inflate(R.layout.cell, cellsLayout, false);
+
                 cells[i][j].setOnClickListener(new View.OnClickListener()
-            {
+                {
                     @Override
                     public void onClick(View v)
                     {
-                        Button tappedCell = (Button) v;
-
-                        int tappedX = getX(tappedCell);
-                        int tappedY = getY(tappedCell);
-
-                        if (isFirstClick)
-                        {
-                            makeMines(tappedX, tappedY);
-                            isFirstClick = false;
-                        }
-
-                        try
-                        {
-                            if (!flaggedCells[tappedY][tappedX])
-                                openCell(tappedX, tappedY,true);
-                        }
-                        catch (Exception e)
-                        {
-                            coord_text_view.setText(e.getMessage());
-                        }
-
-                        coord_text_view.setText(tappedX + " " + tappedY);
+                        onCellClick(v);
                     }
                 });
+
                 cells[i][j].setOnLongClickListener(new View.OnLongClickListener()
                 {
                     @Override
                     public boolean onLongClick(View v)
                     {
-                        if (isGameOver)
-                            return true;
-
-                        Button tappedCell = (Button) v;
-
-                        int tappedX = getX(tappedCell);
-                        int tappedY = getY(tappedCell);
-
-                        if (!openedCells[tappedY][tappedX])
-                        {
-                            flaggedCells[tappedY][tappedX] = !flaggedCells[tappedY][tappedX];
-
-                            if (flaggedCells[tappedY][tappedX])
-                                tappedCell.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.flag));
-                            else
-                            {
-                                InputStream inputStream = getResources().openRawResource(R.raw.untouched);
-                                Drawable untouchedDrawable = Drawable.createFromStream(inputStream, null);
-
-                                tappedCell.setBackground(untouchedDrawable);
-                            }
-                        }
-
-
-                        coord_text_view.setText(String.valueOf(mineFieldCells[tappedY][tappedX]));
-                        return true;
+                        return onCellLongClick(v);
                     }
                 });
+
                 cells[i][j].setTag(i + "," + j);
                 cellsLayout.addView(cells[i][j]);
             }
@@ -247,6 +281,7 @@ public class MainActivity extends AppCompatActivity
                         cells[i][j].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.untouched_mine));
                     }
                 }
+            bombs_left_text_view.setText("Bombs left: 0");
             showWinDialog();
         }
     }
@@ -376,7 +411,7 @@ public class MainActivity extends AppCompatActivity
                 throw new Exception("Error: Incorrect count of mine neighbours");
 
         }
-        if (countOfOpenedCells == WIDTH * HEIGHT - MINE_COUNT)
+        if (countOfOpenedCells == WIDTH * HEIGHT - BOMB_COUNT)
             win();
     }
 
@@ -392,6 +427,7 @@ public class MainActivity extends AppCompatActivity
 
         return flagCounter;
     }
+
     int countMines(ArrayList<Button> neighbours)
     {
         int mineCounter = 0;
@@ -404,6 +440,7 @@ public class MainActivity extends AppCompatActivity
 
         return mineCounter;
     }
+
     ArrayList<Button> makeNeighboursList(int x, int y)
     {
         ArrayList<Button> neighbours = new ArrayList<>();
@@ -434,5 +471,4 @@ public class MainActivity extends AppCompatActivity
         }
         return neighbours;
     }
-
 }
