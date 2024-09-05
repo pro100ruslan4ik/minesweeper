@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="16dp"
+    android:background="@color/white">
+
+    <!-- Название игры -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Сапёр"
+        android:textSize="36sp"
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="32dp"
+        android:gravity="center" />
+
+    <!-- Кнопка для легкого уровня -->
+    <Button
+        android:id="@+id/easy_game_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Легкий"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Кнопка для среднего уровня -->
+    <Button
+        android:id="@+id/medium_game_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Средний"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Кнопка для сложного уровня -->
+    <Button
+        android:id="@+id/hard_game_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Сложный"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp" />
+
+</LinearLayout>
