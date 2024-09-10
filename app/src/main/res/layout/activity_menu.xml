@@ -11,36 +11,33 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Сапёр"
+        android:text="@string/app_name"
         android:textSize="36sp"
         android:textColor="@android:color/black"
         android:layout_marginBottom="32dp"
         android:gravity="center" />
 
-    <!-- Кнопка для легкого уровня -->
     <Button
         android:id="@+id/easy_game_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Легкий"
+        android:text="@string/Easy"
         android:textSize="18sp"
         android:layout_marginBottom="16dp" />
 
-    <!-- Кнопка для среднего уровня -->
     <Button
         android:id="@+id/medium_game_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Средний"
+        android:text="@string/Medium"
         android:textSize="18sp"
         android:layout_marginBottom="16dp" />
 
-    <!-- Кнопка для сложного уровня -->
     <Button
         android:id="@+id/hard_game_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Сложный"
+        android:text="@string/Hard"
         android:textSize="18sp"
         android:layout_marginBottom="16dp" />
 

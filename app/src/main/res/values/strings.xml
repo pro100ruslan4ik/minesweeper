@@ -5,4 +5,7 @@
     <string name="Exit">Exit</string>
     <string name="Start_over">Start over</string>
     <string name="You_win">You win!</string>
+    <string name="Easy">Easy</string>
+    <string name="Medium">Medium</string>
+    <string name="Hard">Hard</string>
 </resources>

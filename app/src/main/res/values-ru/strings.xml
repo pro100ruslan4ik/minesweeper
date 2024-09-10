@@ -6,4 +6,7 @@
     <string name="Exit">Выйти</string>
     <string name="Start_over">Новая игра</string>
     <string name="You_win">Вы победили!</string>
+    <string name="Easy">Легко</string>
+    <string name="Medium">Нормально</string>
+    <string name="Hard">Сложно</string>
 </resources>
