@@ -2,14 +2,12 @@ package com.rus.minesweeper;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.Random;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -52,11 +50,7 @@ public class GameActivity extends AppCompatActivity
     private boolean[][] openedCells;
     private boolean[][] flaggedCells;
 
-
-    private Handler handler;
-    private Runnable runnable;
-    private int seconds = -1;
-    private boolean isRunning = false;
+    private Timer timer;
 
 
     @Override
@@ -98,51 +92,17 @@ public class GameActivity extends AppCompatActivity
         setDifficulty();
 
         timerTextView = findViewById(R.id.timer_text_view);
+        timer = new Timer(timerTextView);
+        timer.setTimer();
 
         bombs_left_text_view = findViewById(R.id.bombs_left_text_view);
         bombs_left_text_view.setText("Bombs left: " + BOMB_COUNT);
 
         makeCells();
         initializeBackgroundInCells();
-        setTimer();
     }
 
-    void setTimer()
-    {
-        handler = new Handler();
-        runnable = new Runnable() {
-            @Override
-            public void run()
-            {
-                if (isRunning)
-                {
-                    seconds++;
-                    updateTimerTextView();
-                    handler.postDelayed(this, 1000);
-                }
-            }
-        };
-    }
 
-    void startTimer()
-    {
-        isRunning = true;
-        handler.post(runnable);
-    }
-
-    void stopTimer()
-    {
-        isRunning = false;
-        handler.removeCallbacks(runnable);
-    }
-
-    void updateTimerTextView()
-    {
-        int minutes = seconds / 60;
-        int secs = seconds % 60;
-        String time = String.format(Locale.getDefault(), "%02d:%02d", minutes, secs);
-        timerTextView.setText(time);
-    }
 
     void makeMines(int xFirst, int yFirst)
     {
@@ -207,7 +167,7 @@ public class GameActivity extends AppCompatActivity
         {
             makeMines(tappedX, tappedY);
             isFirstClick = false;
-            startTimer();
+            timer.startTimer();
         }
 
         try
@@ -303,7 +263,7 @@ public class GameActivity extends AppCompatActivity
         if (!isGameOver)
         {
             isGameOver = true;
-            stopTimer();
+            timer.stopTimer();
 
             for(int i = 0; i < HEIGHT; i++)
                 for (int j = 0; j < WIDTH; j++)
@@ -345,7 +305,7 @@ public class GameActivity extends AppCompatActivity
         if (!isGameOver)
         {
             isGameOver = true;
-            stopTimer();
+            timer.stopTimer();
 
             for(int i = 0; i < HEIGHT; i++)
                 for (int j = 0; j < WIDTH; j++)
