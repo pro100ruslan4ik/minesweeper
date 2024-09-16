@@ -2,16 +2,17 @@ package com.rus.minesweeper;
 
 import android.os.Handler;
 import android.widget.TextView;
-
 import java.util.Locale;
 
 public class Timer
 {
+
     private Handler handler;
     private Runnable runnable;
     private int seconds = -1;
     private boolean isRunning = false;
     private TextView timerTextView;
+
 
     Timer(TextView timerTV){timerTextView = timerTV;}
 
@@ -52,4 +53,5 @@ public class Timer
         String time = String.format(Locale.getDefault(), "%02d:%02d", minutes, secs);
         timerTextView.setText(time);
     }
+
 }

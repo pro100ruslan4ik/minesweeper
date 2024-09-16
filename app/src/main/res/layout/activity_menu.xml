@@ -41,4 +41,12 @@
         android:textSize="18sp"
         android:layout_marginBottom="16dp" />
 
+    <Button
+        android:id="@+id/records_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/Records"
+        android:textSize="18sp"
+        android:layout_marginBottom="14dp" />
+
 </LinearLayout>

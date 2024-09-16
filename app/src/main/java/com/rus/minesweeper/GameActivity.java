@@ -35,7 +35,7 @@ public class GameActivity extends AppCompatActivity
     private boolean isGameOver = false;
 
     private TextView timerTextView;
-    private TextView bombs_left_text_view;
+    private TextView bombsLeftTextView;
 
     private final int WIDTH = 10;
     private final int HEIGHT = 20;
@@ -51,6 +51,8 @@ public class GameActivity extends AppCompatActivity
     private boolean[][] flaggedCells;
 
     private Timer timer;
+
+    private RecordDBOpenHelper dbHelper;
 
 
     @Override
@@ -95,13 +97,13 @@ public class GameActivity extends AppCompatActivity
         timer = new Timer(timerTextView);
         timer.setTimer();
 
-        bombs_left_text_view = findViewById(R.id.bombs_left_text_view);
-        bombs_left_text_view.setText("Bombs left: " + BOMB_COUNT);
+        bombsLeftTextView = findViewById(R.id.bombs_left_text_view);
+        bombsLeftTextView.setText("Bombs left: " + BOMB_COUNT);
 
         makeCells();
-        initializeBackgroundInCells();
+        initBackgroundInCells();
+        initDatabase();
     }
-
 
 
     void makeMines(int xFirst, int yFirst)
@@ -129,7 +131,11 @@ public class GameActivity extends AppCompatActivity
             mineFieldCells[y][x] = CellContent.Mine;
         }
     }
-    void initializeBackgroundInCells()
+    void initDatabase()
+    {
+        dbHelper = new RecordDBOpenHelper(this);
+    }
+    void initBackgroundInCells()
     {
         openedCells = new boolean[HEIGHT][WIDTH];
         flaggedCells = new boolean[HEIGHT][WIDTH];
@@ -212,7 +218,7 @@ public class GameActivity extends AppCompatActivity
             }
 
             int bombsLeft = Math.max((BOMB_COUNT - flagCount), 0);
-            bombs_left_text_view.setText("Bombs left: " + bombsLeft);
+            bombsLeftTextView.setText("Bombs left: " + bombsLeft);
         }
 
 
@@ -315,7 +321,8 @@ public class GameActivity extends AppCompatActivity
                         cells[i][j].setBackground(ContextCompat.getDrawable(getApplicationContext(),R.drawable.untouched_mine));
                     }
                 }
-            bombs_left_text_view.setText("Bombs left: 0");
+            bombsLeftTextView.setText("Bombs left: 0");
+            dbHelper.addGameResult(timerTextView.getText().toString());
             showWinDialog();
         }
     }
