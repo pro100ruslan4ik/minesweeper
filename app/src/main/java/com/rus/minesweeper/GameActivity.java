@@ -25,14 +25,22 @@ import androidx.core.view.WindowInsetsCompat;
 public class GameActivity extends AppCompatActivity
 {
 
+    enum ClickMode
+    {
+        ToOpen,
+        ToFlag
+    }
     enum CellContent
     {
         Mine,
         Empty
     }
+    private int difficulty;
 
     private boolean isFirstClick = true;
     private boolean isGameOver = false;
+
+    private ClickMode clickMode = ClickMode.ToOpen;
 
     private TextView timerTextView;
     private TextView bombsLeftTextView;
@@ -72,7 +80,7 @@ public class GameActivity extends AppCompatActivity
     void setDifficulty()
     {
         Intent intent = getIntent();
-        int difficulty = intent.getIntExtra("difficulty",1);
+        difficulty = intent.getIntExtra("difficulty",1);
         switch (difficulty)
         {
             case 1:
@@ -84,25 +92,65 @@ public class GameActivity extends AppCompatActivity
                 break;
 
             case 3:
-                BOMB_COUNT = 66;
+                BOMB_COUNT = 60;
                 break;
         }
 
     }
     void init()
     {
+        isFirstClick = true;
+        isGameOver = false;
+
         setDifficulty();
 
         timerTextView = findViewById(R.id.timer_text_view);
+        timerTextView.setText("00:00");
+
+        if(timer != null)
+        {
+            timer.stopTimer();
+        }
+
         timer = new Timer(timerTextView);
         timer.setTimer();
 
         bombsLeftTextView = findViewById(R.id.bombs_left_text_view);
         bombsLeftTextView.setText("Bombs left: " + BOMB_COUNT);
 
+        countOfOpenedCells = 0;
+        flagCount = 0;
+
         makeCells();
         initBackgroundInCells();
         initDatabase();
+
+        Button changeModeButton = findViewById(R.id.change_mode_button);
+        changeModeButton.setOnClickListener(v -> {
+
+            if (clickMode == ClickMode.ToOpen)
+            {
+                InputStream inputStream = getResources().openRawResource(R.raw.flag);
+                Drawable flagDrawable = Drawable.createFromStream(inputStream, null);
+
+                clickMode = ClickMode.ToFlag;
+                changeModeButton.setBackground(flagDrawable);
+            }
+            else if (clickMode == ClickMode.ToFlag)
+            {
+                InputStream inputStream = getResources().openRawResource(R.raw.mine);
+                Drawable mineDrawable = Drawable.createFromStream(inputStream, null);
+
+                changeModeButton.setBackground(mineDrawable);
+                clickMode = ClickMode.ToOpen;
+            }
+        });
+
+
+        Button restartButton = findViewById(R.id.restart_button);
+        restartButton.setOnClickListener(v -> {
+            init();
+        });
     }
 
 
@@ -135,6 +183,7 @@ public class GameActivity extends AppCompatActivity
     {
         dbHelper = new RecordDBOpenHelper(this);
     }
+
     void initBackgroundInCells()
     {
         openedCells = new boolean[HEIGHT][WIDTH];
@@ -162,7 +211,43 @@ public class GameActivity extends AppCompatActivity
         return Integer.parseInt(((String) v.getTag()).split(",")[1]);
     }
 
-    void onCellClick(View v)
+    void onCellClick(View button)
+    {
+        int x = getX(button);
+        int y = getY(button);
+
+        if(openedCells[y][x])
+        {
+            openNeighboursWithoutFlag(x,y);
+            return;
+        }
+
+        if (clickMode == ClickMode.ToOpen)
+            toOpenCell(button);
+        else if (clickMode == ClickMode.ToFlag)
+            toFlagCell(button);
+    }
+
+
+    boolean onCellLongClick(View button)
+    {
+        int x = getX(button);
+        int y = getY(button);
+
+        if(openedCells[y][x])
+        {
+            return true;
+        }
+
+        if (clickMode == ClickMode.ToOpen)
+            toFlagCell(button);
+        else if (clickMode == ClickMode.ToFlag)
+            toOpenCell(button);
+
+        return true;
+    }
+
+    void toOpenCell(View v)
     {
         Button tappedCell = (Button) v;
 
@@ -185,14 +270,12 @@ public class GameActivity extends AppCompatActivity
         {
             timerTextView.setText(e.getMessage());
         }
-
-        //timerTextView.setText(tappedX + " " + tappedY);
     }
 
-    boolean onCellLongClick(View v)
+    void toFlagCell(View v)
     {
         if (isGameOver)
-            return true;
+            return;
 
         Button tappedCell = (Button) v;
 
@@ -220,10 +303,6 @@ public class GameActivity extends AppCompatActivity
             int bombsLeft = Math.max((BOMB_COUNT - flagCount), 0);
             bombsLeftTextView.setText("Bombs left: " + bombsLeft);
         }
-
-
-        //timerTextView.setText(String.valueOf(mineFieldCells[tappedY][tappedX]));
-        return true;
     }
 
     void makeCells()
@@ -322,7 +401,7 @@ public class GameActivity extends AppCompatActivity
                     }
                 }
             bombsLeftTextView.setText("Bombs left: 0");
-            dbHelper.addGameResult(timerTextView.getText().toString());
+            dbHelper.addGameResult(timerTextView.getText().toString(),difficulty);
             showWinDialog();
         }
     }

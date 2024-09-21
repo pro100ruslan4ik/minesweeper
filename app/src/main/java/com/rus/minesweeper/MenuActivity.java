@@ -71,7 +71,7 @@ public class MenuActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
 
-                ArrayList<String> records = dbHelper.getTop10Results();
+                ArrayList<String> records = dbHelper.getTop20Results();
                 Intent intent = new Intent(MenuActivity.this, RecordActivity.class);
                 intent.putStringArrayListExtra("records",records);
                 startActivity(intent);
