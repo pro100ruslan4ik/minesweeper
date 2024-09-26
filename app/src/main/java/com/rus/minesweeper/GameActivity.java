@@ -50,12 +50,6 @@ public class GameActivity extends AppCompatActivity
     private int countOfOpenedCells = 0;
     private int flagCount = 0;
 
-    //private Button[][] cells;
-    //private CellContent[][] mineFieldCells;
-
-    //private boolean[][] openedCells;
-    //private boolean[][] flaggedCells;
-
     private GameCell[][] cells;
 
     private Timer timer;
@@ -160,7 +154,6 @@ public class GameActivity extends AppCompatActivity
         {
             for (int j = 0; j < WIDTH; j++)
             {
-                //mineFieldCells[i][j] = CellContent.Empty;
                 cells[i][j].cellContent = GameCell.CellContent.Empty;
             }
         }
@@ -176,8 +169,6 @@ public class GameActivity extends AppCompatActivity
                 x = random.nextInt(WIDTH);
                 y = random.nextInt(HEIGHT);
             }
-            /*while(mineFieldCells[y][x] != CellContent.Empty || (x == xFirst && y == yFirst));
-            mineFieldCells[y][x] = CellContent.Mine;*/
             while(cells[y][x].cellContent != GameCell.CellContent.Empty || (x == xFirst && y == yFirst));
             cells[y][x].cellContent = GameCell.CellContent.Mine;
         }
@@ -195,9 +186,6 @@ public class GameActivity extends AppCompatActivity
         for (int i = 0; i < HEIGHT; i++)
             for (int j = 0; j < WIDTH; j++)
             {
-                /*cells[i][j].setBackground(untouchedDrawable);
-                openedCells[i][j] = false;
-                flaggedCells[i][j] = false;*/
                 cells[i][j].button.setBackground(untouchedDrawable);
                 cells[i][j].isOpened = false;
                 cells[i][j].isFlagged = false;
@@ -311,7 +299,6 @@ public class GameActivity extends AppCompatActivity
     void makeCells()
     {
         cells = new GameCell[HEIGHT][WIDTH];
-        //mineFieldCells = new CellContent[HEIGHT][WIDTH];
 
         GridLayout cellsLayout = (GridLayout) findViewById(R.id.CellsLayout);
         cellsLayout.removeAllViews();

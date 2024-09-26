@@ -15,7 +15,7 @@ import java.util.Locale;
 public class RecordDBOpenHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "time_records.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     public RecordDBOpenHelper(Context context)
     {
