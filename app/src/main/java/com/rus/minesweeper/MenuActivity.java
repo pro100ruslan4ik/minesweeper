@@ -71,9 +71,14 @@ public class MenuActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
 
-                ArrayList<String> records = dbHelper.getTop20Results();
+                ArrayList<String> easyDiffRecords = dbHelper.getTop10ResultsWithDifficulty(1);
+                ArrayList<String> mediumDiffRecords = dbHelper.getTop10ResultsWithDifficulty(2);
+                ArrayList<String> hardDiffRecords = dbHelper.getTop10ResultsWithDifficulty(3);
+
                 Intent intent = new Intent(MenuActivity.this, RecordActivity.class);
-                intent.putStringArrayListExtra("records",records);
+                intent.putStringArrayListExtra("easyRecords",easyDiffRecords);
+                intent.putStringArrayListExtra("mediumRecords",mediumDiffRecords);
+                intent.putStringArrayListExtra("hardRecords",hardDiffRecords);
                 startActivity(intent);
             }
         });

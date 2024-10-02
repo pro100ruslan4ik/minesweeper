@@ -23,6 +23,9 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 
+//TODO: Адаптировать игру под разные устройства
+//TODO:
+
 //нужно изменить поведение, при нажатии новая игра в диалоговом окне
 
 public class GameActivity extends AppCompatActivity
@@ -372,7 +375,7 @@ public class GameActivity extends AppCompatActivity
         builder.setPositiveButton(R.string.Start_over, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                recreate();
+                init();
             }
         });
 
@@ -416,7 +419,7 @@ public class GameActivity extends AppCompatActivity
         builder.setPositiveButton(R.string.Start_over, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                recreate();
+                init();
             }
         });
 

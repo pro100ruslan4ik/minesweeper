@@ -19,11 +19,52 @@ public class RecordActivity extends AppCompatActivity
         LinearLayout recordLinearLayout = findViewById(R.id.record_linear_layout);
 
         Intent intent = getIntent();
-        ArrayList<String> recordsList = intent.getStringArrayListExtra("records");
+        ArrayList<String> easyRecordsList = intent.getStringArrayListExtra("easyRecords");
+        ArrayList<String> mediumRecordsList = intent.getStringArrayListExtra("mediumRecords");
+        ArrayList<String> hardRecordsList = intent.getStringArrayListExtra("hardRecords");
 
-        if (recordsList != null)
+        TextView easyRecordsTextView = new TextView(this);
+        easyRecordsTextView.setText("Easy records:");
+        easyRecordsTextView.setTextSize(16);
+        recordLinearLayout.addView(easyRecordsTextView);
+
+        if (easyRecordsList != null && !easyRecordsList.isEmpty())
         {
-            for (String record : recordsList)
+            for (String record : easyRecordsList)
+            {
+                TextView recordTextView = new TextView(this);
+                recordTextView.setText(record);
+                recordTextView.setTextSize(16);
+
+                recordLinearLayout.addView(recordTextView);
+            }
+        }
+
+        if (mediumRecordsList != null && !mediumRecordsList.isEmpty())
+        {
+            TextView mediumRecordsTextView = new TextView(this);
+            mediumRecordsTextView.setText("\nMedium records:");
+            mediumRecordsTextView.setTextSize(16);
+            recordLinearLayout.addView(mediumRecordsTextView);
+
+            for (String record : mediumRecordsList)
+            {
+                TextView recordTextView = new TextView(this);
+                recordTextView.setText(record);
+                recordTextView.setTextSize(16);
+
+                recordLinearLayout.addView(recordTextView);
+            }
+        }
+
+        if (hardRecordsList != null && !hardRecordsList.isEmpty())
+         {
+            TextView hardRecordsTextView = new TextView(this);
+            hardRecordsTextView.setText("\nHard records:");
+            hardRecordsTextView.setTextSize(16);
+            recordLinearLayout.addView(hardRecordsTextView);
+
+            for (String record : hardRecordsList)
             {
                 TextView recordTextView = new TextView(this);
                 recordTextView.setText(record);

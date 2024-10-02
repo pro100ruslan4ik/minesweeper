@@ -9,7 +9,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 public class RecordDBOpenHelper extends SQLiteOpenHelper {
@@ -118,6 +117,20 @@ public class RecordDBOpenHelper extends SQLiteOpenHelper {
                 String date = cursor.getString(Math.max(cursor.getColumnIndex("date"),0));
                 String gameTime = cursor.getString(Math.max(cursor.getColumnIndex("game_time"),0));
                 String difficulty = cursor.getString(Math.max(cursor.getColumnIndex("difficulty"),0));
+
+                if (difficulty.equals("1"))
+                {
+                    difficulty = "Easy";
+                }
+                else if (difficulty.equals("2"))
+                {
+                    difficulty = "Medium";
+                }
+                else if (difficulty.equals("3"))
+                {
+                    difficulty = "Hard";
+                }
+
                 top20Results.add("#" + i + "\t" + gameTime + "\t" + date + "\t" + time + "\t" + difficulty);
 
             } while (cursor.moveToNext());
@@ -126,6 +139,47 @@ public class RecordDBOpenHelper extends SQLiteOpenHelper {
         db.close();
 
         return top20Results;
+    }
+    ArrayList<String> getTop10ResultsWithDifficulty(int difficulty)
+    {
+        ArrayList<String> top10ResultsForDifficulty = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        /*
+        String difficultyString;
+
+        if (difficulty == 1)
+            difficultyString = "Easy";
+        else if (difficulty == 2)
+            difficultyString = "Medium";
+        else if (difficulty == 3)
+            difficultyString = "Hard";
+        else
+            difficultyString = "Not Defined";*/
+
+        //,new String[]{difficultyString});
+
+        Cursor cursor = db.rawQuery("SELECT * FROM \"Time_records\" WHERE difficulty = ? ORDER BY game_time LIMIT 10",new String[]{String.valueOf(difficulty)});
+
+        int i = 0;
+        if (cursor.moveToFirst())
+        {
+            do {
+                i++;
+
+                String time = cursor.getString(Math.max(cursor.getColumnIndex("time"), 0));
+                String date = cursor.getString(Math.max(cursor.getColumnIndex("date"),0));
+                String gameTime = cursor.getString(Math.max(cursor.getColumnIndex("game_time"),0));
+
+                top10ResultsForDifficulty.add("#" + i + "\t" + gameTime + "\t" + date + "\t" + time);
+
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+
+        return top10ResultsForDifficulty;
     }
 
 
